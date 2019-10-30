@@ -1,7 +1,6 @@
 package com.wfh.base;
 
 
-import com.wfh.SearchCondition;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.util.StringUtils;

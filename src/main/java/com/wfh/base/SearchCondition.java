@@ -1,4 +1,4 @@
-package com.wfh;
+package com.wfh.base;
 
 
 import com.wfh.base.Rule;
