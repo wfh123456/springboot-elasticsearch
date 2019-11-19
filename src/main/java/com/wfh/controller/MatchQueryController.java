@@ -6,12 +6,14 @@ import com.wfh.base.Search;
 import com.wfh.base.SystemResponse;
 import com.wfh.entity.Item;
 import com.wfh.repository.ItemRepository;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -59,7 +61,31 @@ public class MatchQueryController {
     public PageElementGrid listByPage(@RequestBody Search search){
 
         NativeSearchQueryBuilder queryBuilder = builder(Item.class,search);
+        // 默认分页下表是从0页开始的
         queryBuilder.withPageable(PageRequest.of(search.getPageable().getPageIndex(),search.getPageable().getPageSize()));
+        Page<Item> items = itemRepository.search(queryBuilder.build());
+
+        PageElementGrid result = PageElementGrid.<Item>newInstance()
+                .total(items.getTotalPages())
+                .items(items.getContent()).build();
+        return result;
+    }
+    /**
+     *  组合查询
+     * @return
+     */
+    @PostMapping("/groupQuery")
+    public PageElementGrid groupQuery(@RequestBody Item item){
+
+
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+
+        queryBuilder.withQuery(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("category", item.getCategory()))
+                .mustNot(QueryBuilders.termQuery("brand", item.getBrand()))
+                .should(QueryBuilders.termQuery("title", item.getTitle())));
+
+        queryBuilder.withPageable(PageRequest.of(0,5));
+        // 默认分页下表是从0页开始的
         Page<Item> items = itemRepository.search(queryBuilder.build());
 
         PageElementGrid result = PageElementGrid.<Item>newInstance()
@@ -81,6 +107,5 @@ public class MatchQueryController {
         }
         return builder;
     }
-
 
 }
